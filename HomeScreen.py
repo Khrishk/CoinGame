@@ -60,6 +60,7 @@ def draw_window():
 
 def display_heads():
     screen.blit(heads_coin_img, (200, 200))
+    //lol
 
 def unbiased_flip_once():
     recordList = []
