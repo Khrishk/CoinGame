@@ -1,6 +1,4 @@
 import pygame
-import biased_flipper
-import unbiased_flipper
 import random
 
 WIDTH, HEIGHT = 500, 600
@@ -10,7 +8,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Coin Flipper")
 BLUE = (137, 207, 240)
 white = (255, 255, 255)
-
+coin_bias_probability = 0.65
+initial_health = 100
 FPS = 60
 
 flip_once_img = pygame.image.load('Assets/flip_once_button.png').convert_alpha()
@@ -19,8 +18,10 @@ biased_button_img = pygame.image.load('Assets/biased_button_img.png').convert_al
 unbiased_button_img = pygame.image.load('Assets/unbiased_button_img.png').convert_alpha()
 heads_coin_img = pygame.image.load('Assets/Heads-removebg-preview.png').convert_alpha()
 tails_coin_img = pygame.image.load('Assets/Tails-removebg-preview.png').convert_alpha()
-game_over_img = pygame.image.load('Assets/GameOver_img.png').convert_alpha()
-
+game_over_img = pygame.image.load('Assets/coin_game-img.gif').convert_alpha()
+coin_sound = pygame.mixer.Sound('Assets/coin_sound.wav')
+wrong_sound = pygame.mixer.Sound('Assets/wrong_sound.wav')
+correct_sound = pygame.mixer.Sound('Assets/correct_sound.wav')
 font = pygame.font.SysFont("Arial", 36)
 
 show_heads = False
@@ -39,6 +40,7 @@ class Button():
         self.clicked = False
 
     def draw(self):
+        global action
         action = False
         # get mouse position
         pos = pygame.mouse.get_pos()
@@ -92,7 +94,7 @@ def clicked_restart():
     global score, health, restartstate
     restartstate = False
     score = 0
-    health = 100
+    health = initial_health
     decide_coin()
 
 
@@ -110,9 +112,9 @@ def display_counter(heads, tails, score):
 
 def display_coin(coin):
     if coin == "heads":
-        screen.blit(heads_coin_img, (200, 200))
+        screen.blit(heads_coin_img, (175, 200))
     elif coin == "tails":
-        screen.blit(tails_coin_img, (200, 200))
+        screen.blit(tails_coin_img, (175, 200))
     else:
         pass
 
@@ -150,13 +152,15 @@ def draw_window():
     screen.fill(BLUE)
 
     if once_button.draw():
-        count_health(2)
+        coin_sound.play()
+        count_health(1)
         if coin_bias:
             biased_flip_once()
         else:
             unbiased_flip_once()
     if five_button.draw():
-        count_health(10)
+        coin_sound.play()
+        count_health(5)
         if coin_bias:
             biased_flip_five()
         else:
@@ -181,8 +185,10 @@ def clicked_biased():
     if coin_bias:
         count_score()
         count_health(-10)
+        correct_sound.play()
     else:
         count_health(10)
+        wrong_sound.play()
 
 def clicked_unbiased():
     global coinstate, health
@@ -191,9 +197,11 @@ def clicked_unbiased():
 
     if coin_bias:
         count_health(10)
+        wrong_sound.play()
     else:
         count_score()
         count_health(-10)
+        correct_sound.play()
 
 
 
@@ -202,7 +210,7 @@ def biased_flip_once():
     global tails, heads, coinstate
     for i in range(1):
         flip = random.random()
-        if flip < 0.65:
+        if flip < coin_bias_probability:
             coinstate = "heads"
 
             count_heads()
@@ -216,7 +224,7 @@ def biased_flip_five():
     global tails, heads, coinstate
     for i in range(5):
         flip = random.random()
-        if flip < 0.65:
+        if flip < coin_bias_probability:
             coinstate = "heads"
 
             count_heads()
@@ -268,8 +276,8 @@ def main():
 
 
 if __name__ == "__main__":
-    restartstate = False
+    restartstate = True
     score = 0
-    health = 100
+    health = initial_health
     decide_coin()
     main()
